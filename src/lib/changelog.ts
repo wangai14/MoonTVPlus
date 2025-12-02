@@ -10,6 +10,21 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+	{
+    version: "200.0.0",
+    date: "2025-12-02",
+    added: [
+      "新增外部播放器跳转",
+      "新增视频超分",
+      "新增弹幕抓取",
+	  "新增评论抓取"
+    ],
+    changed: [
+    ],
+    fixed: [
+      "修复首页卡顿"
+    ]
+  },
   {
     version: "100.0.0",
     date: "2025-08-26",

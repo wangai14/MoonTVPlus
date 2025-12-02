@@ -40,6 +40,7 @@ import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
 
 import EpisodeSelector from '@/components/EpisodeSelector';
 import PageLayout from '@/components/PageLayout';
+import DoubanComments from '@/components/DoubanComments';
 
 // 扩展 HTMLVideoElement 类型以支持 hls 属性
 declare global {
@@ -3280,6 +3281,28 @@ function PlayPageClient() {
             </div>
           </div>
         </div>
+
+        {/* 豆瓣评论区域 */}
+        {videoDoubanId !== 0 && (
+          <div className='mt-6 px-4'>
+            <div className='bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden'>
+              {/* 标题 */}
+              <div className='px-6 py-4 border-b border-gray-200 dark:border-gray-700'>
+                <h3 className='text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2'>
+                  <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
+                    <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/>
+                  </svg>
+                  豆瓣评论
+                </h3>
+              </div>
+
+              {/* 评论内容 */}
+              <div className='p-6'>
+                <DoubanComments doubanId={videoDoubanId} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageLayout>
   );
