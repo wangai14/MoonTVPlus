@@ -104,6 +104,9 @@ function PlayPageClient() {
   // 网盘搜索弹窗状态
   const [showPansouDialog, setShowPansouDialog] = useState(false);
 
+  // 网页全屏状态 - 控制导航栏的显示隐藏
+  const [isWebFullscreen, setIsWebFullscreen] = useState(false);
+
   // 跳过片头片尾配置
   const [skipConfig, setSkipConfig] = useState<{
     enable: boolean;
@@ -4248,6 +4251,12 @@ function PlayPageClient() {
         lastPlaybackRateRef.current = artPlayerRef.current.playbackRate;
       });
 
+      // 监听网页全屏事件，控制导航栏显示隐藏
+      artPlayerRef.current.on('fullscreenWeb', (isFullscreen: boolean) => {
+        console.log('网页全屏状态变化:', isFullscreen);
+        setIsWebFullscreen(isFullscreen);
+      });
+
       // 监听视频可播放事件，这时恢复播放进度更可靠
       artPlayerRef.current.on('video:canplay', () => {
         // 若存在需要恢复的播放进度，则跳转
@@ -4509,7 +4518,7 @@ function PlayPageClient() {
 
   if (loading) {
     return (
-      <PageLayout activePath='/play'>
+      <PageLayout activePath='/play' hideNavigation={isWebFullscreen}>
         <div className='flex items-center justify-center min-h-screen bg-transparent'>
           <div className='text-center max-w-md mx-auto px-6'>
             {/* 动画影院图标 */}
@@ -4601,7 +4610,7 @@ function PlayPageClient() {
 
   if (error) {
     return (
-      <PageLayout activePath='/play'>
+      <PageLayout activePath='/play' hideNavigation={isWebFullscreen}>
         <div className='flex items-center justify-center min-h-screen bg-transparent'>
           <div className='text-center max-w-md mx-auto px-6'>
             {/* 错误图标 */}
@@ -4668,7 +4677,7 @@ function PlayPageClient() {
   }
 
   return (
-    <PageLayout activePath='/play'>
+    <PageLayout activePath='/play' hideNavigation={isWebFullscreen}>
       {/* TMDB背景图 */}
       {tmdbBackdrop && (
         <div
