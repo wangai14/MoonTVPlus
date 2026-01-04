@@ -31,14 +31,14 @@ export default function TopProgressBar() {
     const originalForward = router.forward;
 
     // 拦截 router.push
-    router.push = function (...args: any[]) {
+    router.push = function (...args: Parameters<typeof originalPush>) {
       isNavigatingRef.current = true;
       NProgress.start();
       return originalPush.apply(this, args);
     };
 
     // 拦截 router.replace
-    router.replace = function (...args: any[]) {
+    router.replace = function (...args: Parameters<typeof originalReplace>) {
       isNavigatingRef.current = true;
       NProgress.start();
       return originalReplace.apply(this, args);

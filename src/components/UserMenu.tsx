@@ -10,8 +10,13 @@ import {
   Copy,
   Download,
   ExternalLink,
+  Eye,
+  EyeOff,
+  Home,
   KeyRound,
   LogOut,
+  MoveDown,
+  MoveUp,
   Rss,
   Settings,
   Shield,
@@ -107,6 +112,26 @@ export const UserMenu: React.FC = () => {
   const [isUsageSectionOpen, setIsUsageSectionOpen] = useState(false);
   const [isBufferSectionOpen, setIsBufferSectionOpen] = useState(false);
   const [isDanmakuSectionOpen, setIsDanmakuSectionOpen] = useState(false);
+  const [isHomepageSectionOpen, setIsHomepageSectionOpen] = useState(false);
+
+  // 首页模块配置
+  interface HomeModule {
+    id: string;
+    name: string;
+    enabled: boolean;
+    order: number;
+  }
+
+  const defaultHomeModules: HomeModule[] = [
+    { id: 'hotMovies', name: '热门电影', enabled: true, order: 0 },
+    { id: 'hotDuanju', name: '热播短剧', enabled: true, order: 1 },
+    { id: 'bangumiCalendar', name: '新番放送', enabled: true, order: 2 },
+    { id: 'hotTvShows', name: '热门剧集', enabled: true, order: 3 },
+    { id: 'hotVarietyShows', name: '热门综艺', enabled: true, order: 4 },
+    { id: 'upcomingContent', name: '即将上映', enabled: true, order: 5 },
+  ];
+
+  const [homeModules, setHomeModules] = useState<HomeModule[]>(defaultHomeModules);
 
   // 豆瓣数据源选项
   const doubanDataSourceOptions = [
@@ -342,6 +367,16 @@ export const UserMenu: React.FC = () => {
       const savedNextEpisodePreCache = localStorage.getItem('nextEpisodePreCache');
       if (savedNextEpisodePreCache !== null) {
         setNextEpisodePreCache(savedNextEpisodePreCache === 'true');
+      }
+
+      // 加载首页模块配置
+      const savedHomeModules = localStorage.getItem('homeModules');
+      if (savedHomeModules !== null) {
+        try {
+          setHomeModules(JSON.parse(savedHomeModules));
+        } catch (error) {
+          console.error('解析首页模块配置失败:', error);
+        }
       }
     }
   }, []);
@@ -606,6 +641,53 @@ export const UserMenu: React.FC = () => {
     }
   };
 
+  // 首页模块配置处理函数
+  const handleHomeModuleToggle = (id: string, enabled: boolean) => {
+    const updatedModules = homeModules.map(module =>
+      module.id === id ? { ...module, enabled } : module
+    );
+    setHomeModules(updatedModules);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('homeModules', JSON.stringify(updatedModules));
+      // 触发自定义事件通知首页刷新
+      window.dispatchEvent(new CustomEvent('homeModulesUpdated'));
+    }
+  };
+
+  const handleHomeModuleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const updatedModules = [...homeModules];
+    const temp = updatedModules[index];
+    updatedModules[index] = updatedModules[index - 1];
+    updatedModules[index - 1] = temp;
+    // 更新order
+    updatedModules.forEach((module, idx) => {
+      module.order = idx;
+    });
+    setHomeModules(updatedModules);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('homeModules', JSON.stringify(updatedModules));
+      window.dispatchEvent(new CustomEvent('homeModulesUpdated'));
+    }
+  };
+
+  const handleHomeModuleMoveDown = (index: number) => {
+    if (index === homeModules.length - 1) return;
+    const updatedModules = [...homeModules];
+    const temp = updatedModules[index];
+    updatedModules[index] = updatedModules[index + 1];
+    updatedModules[index + 1] = temp;
+    // 更新order
+    updatedModules.forEach((module, idx) => {
+      module.order = idx;
+    });
+    setHomeModules(updatedModules);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('homeModules', JSON.stringify(updatedModules));
+      window.dispatchEvent(new CustomEvent('homeModulesUpdated'));
+    }
+  };
+
   // 获取感谢信息
   const getThanksInfo = (dataSource: string) => {
     switch (dataSource) {
@@ -649,6 +731,7 @@ export const UserMenu: React.FC = () => {
     setDoubanImageProxyUrl(defaultDoubanImageProxyUrl);
     setBufferStrategy('medium');
     setNextEpisodePreCache(true);
+    setHomeModules(defaultHomeModules);
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('defaultAggregateSearch', JSON.stringify(true));
@@ -663,6 +746,8 @@ export const UserMenu: React.FC = () => {
       localStorage.setItem('doubanImageProxyUrl', defaultDoubanImageProxyUrl);
       localStorage.setItem('bufferStrategy', 'medium');
       localStorage.setItem('nextEpisodePreCache', 'true');
+      localStorage.setItem('homeModules', JSON.stringify(defaultHomeModules));
+      window.dispatchEvent(new CustomEvent('homeModulesUpdated'));
     }
   };
 
@@ -1509,6 +1594,105 @@ export const UserMenu: React.FC = () => {
                         {clearCacheMessage}
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 首页设置 */}
+            <div className='border border-gray-200 dark:border-gray-700 rounded-lg overflow-visible'>
+              <button
+                onClick={() => setIsHomepageSectionOpen(!isHomepageSectionOpen)}
+                className='w-full px-3 py-2.5 md:px-4 md:py-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors flex items-center justify-between'
+              >
+                <h3 className='text-base font-semibold text-gray-800 dark:text-gray-200'>
+                  首页设置
+                </h3>
+                {isHomepageSectionOpen ? (
+                  <ChevronUp className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+                ) : (
+                  <ChevronDown className='w-5 h-5 text-gray-600 dark:text-gray-400' />
+                )}
+              </button>
+              {isHomepageSectionOpen && (
+                <div className='p-3 md:p-4 space-y-4 md:space-y-6'>
+                  <div>
+                    <p className='text-xs text-gray-500 dark:text-gray-400 mb-3'>
+                      配置首页模块的显示顺序和可见性
+                    </p>
+                  </div>
+
+                  {/* 模块列表 */}
+                  <div className='space-y-2'>
+                    {homeModules.map((module, index) => (
+                      <div
+                        key={module.id}
+                        className='flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700'
+                      >
+                        {/* 左侧：显示/隐藏开关 */}
+                        <button
+                          onClick={() => handleHomeModuleToggle(module.id, !module.enabled)}
+                          className='flex-shrink-0'
+                          title={module.enabled ? '点击隐藏' : '点击显示'}
+                        >
+                          {module.enabled ? (
+                            <Eye className='w-5 h-5 text-green-600 dark:text-green-400' />
+                          ) : (
+                            <EyeOff className='w-5 h-5 text-gray-400 dark:text-gray-500' />
+                          )}
+                        </button>
+
+                        {/* 中间：模块名称 */}
+                        <div className='flex-1'>
+                          <span className={`text-sm font-medium ${
+                            module.enabled
+                              ? 'text-gray-900 dark:text-gray-100'
+                              : 'text-gray-400 dark:text-gray-500'
+                          }`}>
+                            {module.name}
+                          </span>
+                        </div>
+
+                        {/* 右侧：上下移动按钮 */}
+                        <div className='flex gap-1'>
+                          <button
+                            onClick={() => handleHomeModuleMoveUp(index)}
+                            disabled={index === 0}
+                            className='p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
+                            title='上移'
+                          >
+                            <MoveUp className='w-4 h-4 text-gray-600 dark:text-gray-400' />
+                          </button>
+                          <button
+                            onClick={() => handleHomeModuleMoveDown(index)}
+                            disabled={index === homeModules.length - 1}
+                            className='p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
+                            title='下移'
+                          >
+                            <MoveDown className='w-4 h-4 text-gray-600 dark:text-gray-400' />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 恢复默认按钮 */}
+                  <button
+                    onClick={() => {
+                      setHomeModules(defaultHomeModules);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('homeModules', JSON.stringify(defaultHomeModules));
+                        window.dispatchEvent(new CustomEvent('homeModulesUpdated'));
+                      }
+                    }}
+                    className='w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors'
+                  >
+                    恢复默认配置
+                  </button>
+
+                  {/* 提示信息 */}
+                  <div className='text-xs text-gray-500 dark:text-gray-400 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg'>
+                    <p>💡 提示：点击眼睛图标可显示/隐藏模块，使用箭头按钮调整模块顺序</p>
                   </div>
                 </div>
               )}
